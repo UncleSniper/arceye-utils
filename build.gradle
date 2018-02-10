@@ -2,7 +2,7 @@ plugins {
 	id 'java-library'
 }
 
-description 'ArcEye TermIO'
+description 'ArcEye Utils'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 compileJava.options.bootClasspath = java7RTPath
