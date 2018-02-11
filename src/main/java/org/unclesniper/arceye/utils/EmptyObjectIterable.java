@@ -7,6 +7,8 @@ public class EmptyObjectIterable<ElementT> implements Iterable<ElementT> {
 
 	public static class EmptyObjectIterator<ElementT> implements Iterator<ElementT> {
 
+		public EmptyObjectIterator() {}
+
 		public boolean hasNext() {
 			return false;
 		}
@@ -20,6 +22,8 @@ public class EmptyObjectIterable<ElementT> implements Iterable<ElementT> {
 		}
 
 	}
+
+	public EmptyObjectIterable() {}
 
 	public Iterator<ElementT> iterator() {
 		return new EmptyObjectIterator<ElementT>();
