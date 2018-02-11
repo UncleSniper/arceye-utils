@@ -37,16 +37,18 @@ public class ListenerSet<ListenerT> {
 	public <ForwardEventT, BackwardEventT> void fireRevocableEvent(
 		EventFireClosure<ListenerT, ForwardEventT> forward,
 		ForwardEventT forwardEvent,
+		Runnable undo,
 		EventFireClosure<ListenerT, BackwardEventT> backward,
 		BackwardEventT backwardEvent
 	) {
-		ListenerSet.fireRevocableEvent(getListeners(), forward, forwardEvent, backward, backwardEvent);
+		ListenerSet.fireRevocableEvent(getListeners(), forward, forwardEvent, undo, backward, backwardEvent);
 	}
 
 	public static <ListenerT, ForwardEventT, BackwardEventT> void fireRevocableEvent(
 		Iterable<ListenerT> listeners,
 		EventFireClosure<ListenerT, ForwardEventT> forward,
 		ForwardEventT forwardEvent,
+		Runnable undo,
 		EventFireClosure<ListenerT, BackwardEventT> backward,
 		BackwardEventT backwardEvent
 	) {
@@ -71,6 +73,7 @@ public class ListenerSet<ListenerT> {
 		}
 		if(exception == null && error == null)
 			return;
+		undo.run();
 		try {
 			for(ListenerT listener : listeners) {
 				if(listener == stop)
