@@ -34,4 +34,60 @@ public class ListenerSet<ListenerT> {
 		return cache;
 	}
 
+	public <ForwardEventT, BackwardEventT> void fireRevocableEvent(
+		EventFireClosure<ListenerT, ForwardEventT> forward,
+		ForwardEventT forwardEvent,
+		EventFireClosure<ListenerT, BackwardEventT> backward,
+		BackwardEventT backwardEvent
+	) {
+		ListenerSet.fireRevocableEvent(getListeners(), forward, forwardEvent, backward, backwardEvent);
+	}
+
+	public static <ListenerT, ForwardEventT, BackwardEventT> void fireRevocableEvent(
+		Iterable<ListenerT> listeners,
+		EventFireClosure<ListenerT, ForwardEventT> forward,
+		ForwardEventT forwardEvent,
+		EventFireClosure<ListenerT, BackwardEventT> backward,
+		BackwardEventT backwardEvent
+	) {
+		ListenerT stop = null;
+		RuntimeException exception = null;
+		Error error = null;
+		for(ListenerT listener : listeners) {
+			if(listener == null)
+				continue;
+			stop = listener;
+			try {
+				forward.fireEventForListener(listener, forwardEvent);
+			}
+			catch(RuntimeException re) {
+				exception = re;
+				break;
+			}
+			catch(Error e) {
+				error = e;
+				break;
+			}
+		}
+		if(exception == null && error == null)
+			return;
+		try {
+			for(ListenerT listener : listeners) {
+				if(listener == stop)
+					break;
+				try {
+					backward.fireEventForListener(listener, backwardEvent);
+				}
+				catch(RuntimeException re) {}
+				catch(Error e) {}
+			}
+		}
+		finally {
+			if(exception != null)
+				throw exception;
+			else
+				throw error;
+		}
+	}
+
 }
