@@ -41,43 +41,68 @@ public class ColorMap {
 		0xa8a8a8, 0xb2b2b2, 0xbcbcbc, 0xc6c6c6, 0xd0d0d0, 0xdadada, 0xe4e4e4, 0xeeeeee,
 	};
 
-	private static final int[] MAP256 = new int[256];
+	private static final int[] MAP2568 = new int[256];
+	private static final int[] MAP25616 = new int[256];
 
-	private static final int[] CONTRAST256 = new int[256];
+	private static final int[] CONTRAST2568 = new int[256];
+	private static final int[] CONTRAST25616 = new int[256];
 
 	static {
 		int i;
 		double[] triple = new double[3];
-		double[][] base = new double[8][];
-		for(i = 0; i < 8; ++i) {
-			ColorMap.MAP256[i] = i;
+		double[][] base = new double[16][];
+		for(i = 0; i < 16; ++i) {
+			ColorMap.MAP2568[i] = i;
+			ColorMap.MAP25616[i] = i;
 			base[i] = new double[3];
 			ColorMap.rgb2lab(ColorMap.SPEC256[i], base[i]);
 		}
+		for(i = 0; i < 8; ++i)
+			ColorMap.makeContrast(i, base[i], base);
 		for(i = 8; i < 256; ++i) {
 			ColorMap.rgb2lab(ColorMap.SPEC256[i], triple);
-			int bestBase = -1;
-			double shortestDistance = 0.0;
-			for(int j = 0; j < 8; ++j) {
+			int bestBase8 = -1, bestBase16 = -1;
+			double shortestDistance8 = 0.0, shortestDistance16 = 0.0;
+			for(int j = 0; j < 16; ++j) {
 				double delta = ColorMap.labDistance(triple, base[j]);
-				if(bestBase < 0 || delta < shortestDistance) {
-					bestBase = j;
-					shortestDistance = delta;
+				if(j < 8 && (bestBase8 < 0 || delta < shortestDistance8)) {
+					bestBase8 = j;
+					shortestDistance8 = delta;
+				}
+				if(bestBase16 < 0 || delta < shortestDistance16) {
+					bestBase16 = j;
+					shortestDistance16 = delta;
 				}
 			}
-			ColorMap.MAP256[i] = bestBase;
-			double dBlack = ColorMap.labDistance(triple, base[0]);
-			double dWhite = ColorMap.labDistance(triple, base[7]);
-			ColorMap.CONTRAST256[i] = dBlack < dWhite ? 0 : 7;
+			ColorMap.MAP2568[i] = bestBase8;
+			if(i >= 8)
+				ColorMap.MAP25616[i] = bestBase16;
+			ColorMap.makeContrast(i, triple, base);
 		}
 	}
 
-	public static int highColorToLowColor(int color) {
-		return ColorMap.MAP256[color];
+	private static void makeContrast(int index, double[] triple, double[][] base) {
+		double dBlack = ColorMap.labDistance(triple, base[0]);
+		double dWhite = ColorMap.labDistance(triple, base[7]);
+		ColorMap.CONTRAST2568[index] = dBlack < dWhite ? 0 : 7;
+		dWhite = ColorMap.labDistance(triple, base[15]);
+		ColorMap.CONTRAST25616[index] = dBlack < dWhite ? 0 : 15;
 	}
 
-	public static int contrastTo(int color) {
-		return ColorMap.CONTRAST256[color];
+	public static int highColorTo8Color(int color) {
+		return ColorMap.MAP2568[color];
+	}
+
+	public static int highColorTo16Color(int color) {
+		return ColorMap.MAP25616[color];
+	}
+
+	public static int contrast8To(int color) {
+		return ColorMap.CONTRAST2568[color];
+	}
+
+	public static int contrast16To(int color) {
+		return ColorMap.CONTRAST25616[color];
 	}
 
 	private static void rgb2xyz(double r, double g, double b, double[] xyz) {
